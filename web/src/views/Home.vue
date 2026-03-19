@@ -61,9 +61,9 @@
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
           </svg>
-          友情链接
+          收藏夹
         </button>
-        <p class="copyright">Copyright © 2025 Nav-Item | <a href="https://github.com/eooce/Nav-Item" target="_blank" class="footer-link">Powered by eooce</a></p>
+        <p class="copyright">Copyright © 2025 Nav-Item | <a href="https://github.com/Tyr-eamon/nav-item" target="_blank" class="footer-link">Powered by zeabur</a></p>
       </div>
     </footer>
 
@@ -71,7 +71,7 @@
     <div v-if="showFriendLinks" class="modal-overlay" @click="showFriendLinks = false">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h3>友情链接</h3>
+          <h3>收藏夹</h3>
           <button @click="showFriendLinks = false" class="close-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12"></path>
@@ -341,7 +341,7 @@ function handleLogoError(event) {
 
 .home-container {
   min-height: 95vh;
-  background-image: url('https://link.tyrlink.dpdns.org/1.4m.png');
+  background-image: url('https://link.tyrlink.dpdns.org/nav.webp');   /*背景图替换*/
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
