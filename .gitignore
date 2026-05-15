@@ -1,0 +1,17 @@
+node_modules/
+web/node_modules/
+web/dist/
+database/
+web/d1-data.sql
+.wrangler/
+.env
+.env.*
+!.env.example
+!.env.*.example
+.dev.vars
+.dev.vars.*
+*.db
+*.sqlite
+*.sqlite3
+uploads/*
+!uploads/default-favicon.png

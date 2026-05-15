@@ -1,0 +1,8 @@
+name = "nav-item"
+compatibility_date = "2026-05-15"
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nav-item"
+database_id = "a43c2924-e816-4043-9c8e-b69c574ab4d3"
