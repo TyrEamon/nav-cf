@@ -63,7 +63,7 @@
           </svg>
           收藏夹
         </button>
-        <p class="copyright">Copyright © 2025 Nav-Item | <a href="https://github.com/Tyr-eamon/nav-item" target="_blank" class="footer-link">Powered by zeabur</a></p>
+        <p class="copyright">Copyright © 2025 Nav-Item | <a href="https://github.com/TyrEamon/nav-cf" target="_blank" class="footer-link">Powered by Cloudflare</a></p>
       </div>
     </footer>
 
