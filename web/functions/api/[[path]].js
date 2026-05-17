@@ -486,7 +486,11 @@ async function handleSiteSettings(request, env, segments) {
     return json(settings);
   }
 
-  if (segments.length === 2 && segments[1] === "umami-stats" && request.method === "GET") {
+  if (
+    segments.length === 2 &&
+    (segments[1] === "stats-summary" || segments[1] === "umami-stats") &&
+    request.method === "GET"
+  ) {
     await requireUser(request, env);
     return json(await getUmamiStats(env));
   }

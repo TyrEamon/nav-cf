@@ -59,7 +59,19 @@
         </label>
         <label class="form-field form-field-wide">
           <span>分享链接</span>
-          <input v-model="form.umami_share_url" class="input" placeholder="https://u.mtcacg.top/share/..." />
+          <div class="link-input-row">
+            <input v-model="form.umami_share_url" class="input" placeholder="https://u.mtcacg.top/share/..." />
+            <a
+              class="link-btn"
+              :href="safeShareUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              :class="{ disabled: !safeShareUrl }"
+              @click="handleShareLinkClick"
+            >
+              打开
+            </a>
+          </div>
         </label>
       </div>
 
@@ -104,6 +116,7 @@ const backgroundPreviewStyle = computed(() => {
   if (!form.background_url) return {};
   return { backgroundImage: `url(${JSON.stringify(form.background_url)})` };
 });
+const safeShareUrl = computed(() => normalizeHttpUrl(form.umami_share_url));
 
 onMounted(async () => {
   await loadSettings();
@@ -168,6 +181,20 @@ function applySiteSettings() {
 
 function formatNumber(value) {
   return Number(value || 0).toLocaleString('zh-CN');
+}
+
+function normalizeHttpUrl(value) {
+  const url = String(value || '').trim();
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return '';
+}
+
+function handleShareLinkClick(event) {
+  if (!safeShareUrl.value) {
+    event.preventDefault();
+    showMessage('请先填写完整的分享链接', 'error');
+  }
 }
 
 function showMessage(text, type) {
@@ -249,6 +276,36 @@ function showMessage(text, type) {
 .input:focus {
   outline: 2px solid #2566d8;
   border-color: #2566d8;
+}
+
+.link-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
+  background: #334155;
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
+  transition: background 0.2s;
+}
+
+.link-btn:hover {
+  background: #1e293b;
+}
+
+.link-btn.disabled {
+  background: #b8c3d8;
+  cursor: not-allowed;
 }
 
 .btn {
@@ -385,7 +442,8 @@ function showMessage(text, type) {
   .panel-header,
   .preview-row,
   .form-grid,
-  .stats-grid {
+  .stats-grid,
+  .link-input-row {
     grid-template-columns: 1fr;
   }
 
