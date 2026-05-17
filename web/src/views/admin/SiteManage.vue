@@ -368,9 +368,11 @@ function showMessage(text, type) {
 }
 
 .background-preview {
-  min-height: 96px;
-  background-size: cover;
+  min-height: 180px;
+  aspect-ratio: 16 / 5;
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: flex-end;
 }
@@ -454,6 +456,11 @@ function showMessage(text, type) {
   .logo-preview {
     width: 88px;
     height: 88px;
+  }
+
+  .background-preview {
+    min-height: 150px;
+    aspect-ratio: 16 / 9;
   }
 }
 </style>
