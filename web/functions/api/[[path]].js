@@ -39,35 +39,35 @@ export async function onRequest(context) {
     }
 
     if (segments[0] === "login" && request.method === "POST") {
-      return handleLogin(request, env);
+      return await handleLogin(request, env);
     }
 
     if (segments[0] === "menus") {
-      return handleMenus(request, env, url, segments);
+      return await handleMenus(request, env, url, segments);
     }
 
     if (segments[0] === "cards") {
-      return handleCards(request, env, url, segments);
+      return await handleCards(request, env, url, segments);
     }
 
     if (segments[0] === "upload") {
-      return handleUpload(request, env);
+      return await handleUpload(request, env);
     }
 
     if (segments[0] === "ads") {
-      return handleAds(request, env, url, segments);
+      return await handleAds(request, env, url, segments);
     }
 
     if (segments[0] === "friends") {
-      return handleFriends(request, env, url, segments);
+      return await handleFriends(request, env, url, segments);
     }
 
     if (segments[0] === "users") {
-      return handleUsers(request, env, url, segments);
+      return await handleUsers(request, env, url, segments);
     }
 
     if (segments[0] === "site-settings") {
-      return handleSiteSettings(request, env, segments);
+      return await handleSiteSettings(request, env, segments);
     }
 
     return json({ error: "Not found" }, 404);
