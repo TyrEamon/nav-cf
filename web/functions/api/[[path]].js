@@ -4,6 +4,23 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const tokenTtlSeconds = 60 * 60 * 2;
 const fallbackJwtSecret = "your_jwt_secret_key";
+const siteSettingKeys = [
+  "site_name",
+  "site_logo_url",
+  "background_url",
+  "umami_base_url",
+  "umami_website_id",
+  "umami_share_url",
+];
+const defaultSiteSettings = {
+  site_name: "Nav-Item",
+  site_logo_url: "https://img.icons8.com/lollipop/100/navigation.png",
+  background_url: "https://link.tyrlink.dpdns.org/nav.webp",
+  umami_base_url: "https://u.mtcacg.top",
+  umami_website_id: "c16beeaa-1801-4337-9d35-3aa2ea8b300a",
+  umami_share_url: "https://u.mtcacg.top/share/9WknxPqM6gjT0j4w",
+};
+let siteSettingsEnsured = false;
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -47,6 +64,10 @@ export async function onRequest(context) {
 
     if (segments[0] === "users") {
       return handleUsers(request, env, url, segments);
+    }
+
+    if (segments[0] === "site-settings") {
+      return handleSiteSettings(request, env, segments);
     }
 
     return json({ error: "Not found" }, 404);
@@ -451,6 +472,134 @@ async function handleUsers(request, env, url, segments) {
   }
 
   return methodNotAllowed();
+}
+
+async function handleSiteSettings(request, env, segments) {
+  if (segments.length === 1 && request.method === "GET") {
+    return json(await getSiteSettings(env));
+  }
+
+  if (segments.length === 1 && request.method === "PUT") {
+    await requireUser(request, env);
+    const body = await readJson(request);
+    const settings = await saveSiteSettings(env, body);
+    return json(settings);
+  }
+
+  if (segments.length === 2 && segments[1] === "umami-stats" && request.method === "GET") {
+    await requireUser(request, env);
+    return json(await getUmamiStats(env));
+  }
+
+  return methodNotAllowed();
+}
+
+async function getSiteSettings(env) {
+  await ensureSiteSettings(env);
+  const rows = await all(env, "SELECT key, value FROM site_settings");
+  const settings = { ...defaultSiteSettings };
+
+  for (const row of rows) {
+    if (siteSettingKeys.includes(row.key)) {
+      settings[row.key] = row.value || "";
+    }
+  }
+
+  return settings;
+}
+
+async function saveSiteSettings(env, body) {
+  await ensureSiteSettings(env);
+
+  for (const key of siteSettingKeys) {
+    if (!Object.prototype.hasOwnProperty.call(body, key)) continue;
+    await run(
+      env,
+      "INSERT INTO site_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+      [key, String(body[key] ?? "").trim()],
+    );
+  }
+
+  return getSiteSettings(env);
+}
+
+async function getUmamiStats(env) {
+  const settings = await getSiteSettings(env);
+  const baseUrl = normalizeBaseUrl(settings.umami_base_url);
+  const shareId = extractUmamiShareId(settings.umami_share_url);
+
+  if (!baseUrl || !shareId) {
+    throw new ResponseError("Umami share URL is not configured", 400);
+  }
+
+  const shareResponse = await fetch(`${baseUrl}/api/share/${encodeURIComponent(shareId)}`);
+  if (!shareResponse.ok) {
+    throw new ResponseError("Failed to fetch Umami share context", 502);
+  }
+
+  const share = await shareResponse.json();
+  const websiteId = settings.umami_website_id || share.websiteId;
+  if (!websiteId || !share.token) {
+    throw new ResponseError("Umami share context is incomplete", 502);
+  }
+
+  const statsUrl = new URL(`${baseUrl}/api/websites/${encodeURIComponent(websiteId)}/stats`);
+  statsUrl.searchParams.set("startAt", "0");
+  statsUrl.searchParams.set("endAt", String(Date.now()));
+  statsUrl.searchParams.set("unit", "hour");
+  statsUrl.searchParams.set("timezone", "Asia/Shanghai");
+
+  const statsResponse = await fetch(statsUrl.toString(), {
+    headers: {
+      "x-umami-share-token": share.token,
+      "x-umami-share-context": "1",
+    },
+  });
+  if (!statsResponse.ok) {
+    throw new ResponseError("Failed to fetch Umami stats", 502);
+  }
+
+  const stats = await statsResponse.json();
+  return {
+    pageviews: Number(stats.pageviews || 0),
+    visitors: Number(stats.visitors || 0),
+  };
+}
+
+async function ensureSiteSettings(env) {
+  ensureDb(env);
+  if (siteSettingsEnsured) return;
+
+  await env.DB.prepare(
+    "CREATE TABLE IF NOT EXISTS site_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '')",
+  ).run();
+
+  for (const [key, value] of Object.entries(defaultSiteSettings)) {
+    await env.DB.prepare("INSERT OR IGNORE INTO site_settings (key, value) VALUES (?, ?)")
+      .bind(key, value)
+      .run();
+  }
+
+  siteSettingsEnsured = true;
+}
+
+function normalizeBaseUrl(value = "") {
+  return String(value).trim().replace(/\/+$/, "");
+}
+
+function extractUmamiShareId(value = "") {
+  const raw = String(value).trim();
+  if (!raw) return "";
+
+  try {
+    const url = new URL(raw);
+    const parts = url.pathname.split("/").filter(Boolean);
+    const shareIndex = parts.indexOf("share");
+    return shareIndex >= 0 ? parts[shareIndex + 1] || "" : parts.at(-1) || "";
+  } catch {
+    const parts = raw.split("/").filter(Boolean);
+    return parts.at(-1) || "";
+  }
 }
 
 async function paginatedList(env, url, table, selectSql, countSql) {

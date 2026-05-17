@@ -341,7 +341,7 @@ function handleLogoError(event) {
 
 .home-container {
   min-height: 95vh;
-  background-image: url('https://link.tyrlink.dpdns.org/nav.webp');   /*背景图替换*/
+  background-image: var(--nav-background-image, url('https://link.tyrlink.dpdns.org/nav.webp'));   /*背景图替换*/
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

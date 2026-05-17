@@ -51,3 +51,8 @@ export const deleteFriend = (id) => axios.delete(`${BASE}/friends/${id}`, { head
 export const getUserProfile = () => axios.get(`${BASE}/users/profile`, { headers: authHeaders() });
 export const changePassword = (oldPassword, newPassword) => axios.put(`${BASE}/users/password`, { oldPassword, newPassword }, { headers: authHeaders() });
 export const getUsers = () => axios.get(`${BASE}/users`, { headers: authHeaders() }); 
+
+// 站点设置
+export const getSiteSettings = () => axios.get(`${BASE}/site-settings`);
+export const updateSiteSettings = (data) => axios.put(`${BASE}/site-settings`, data, { headers: authHeaders() });
+export const getUmamiStats = () => axios.get(`${BASE}/site-settings/umami-stats`, { headers: authHeaders() });

@@ -42,6 +42,7 @@
         <li :class="{active: page==='ad'}" @click="page='ad'; closeSider()">广告管理</li>
         <li :class="{active: page==='friend'}" @click="page='friend'; closeSider()">友链管理</li>
         <li :class="{active: page==='user'}" @click="page='user'; closeSider()">用户管理</li>
+        <li :class="{active: page==='site'}" @click="page='site'; closeSider()">站点管理</li>
       </ul>
     </aside>
     <main class="admin-main">
@@ -82,6 +83,7 @@
         <AdManage v-if="page==='ad'" />
         <FriendLinkManage v-if="page==='friend'" />
         <UserManage v-if="page==='user'" />
+        <SiteManage v-if="page==='site'" />
       </div>
       <footer class="admin-footer">
         <p class="admin-copyright">Copyright © 2025 Nav-Item | <a href="https://github.com/TyrEamon/nav-cf" target="_blank" class="footer-link">Powered by Cloudflare</a></p>
@@ -98,6 +100,7 @@ import CardManage from './admin/CardManage.vue';
 import AdManage from './admin/AdManage.vue';
 import FriendLinkManage from './admin/FriendLinkManage.vue';
 import UserManage from './admin/UserManage.vue';
+import SiteManage from './admin/SiteManage.vue';
 
 const page = ref('welcome');
 const lastLoginTime = ref('');
@@ -117,6 +120,7 @@ const pageTitle = computed(() => {
     case 'ad': return '广告管理';
     case 'friend': return '友链管理';
     case 'user': return '用户管理';
+    case 'site': return '站点管理';
     default: return '';
   }
 });

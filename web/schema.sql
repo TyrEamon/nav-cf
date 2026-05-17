@@ -62,3 +62,16 @@ CREATE TABLE IF NOT EXISTS friends (
 );
 
 CREATE INDEX IF NOT EXISTS idx_friends_title ON friends(title);
+
+CREATE TABLE IF NOT EXISTS site_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT ''
+);
+
+INSERT OR IGNORE INTO site_settings (key, value) VALUES
+  ('site_name', 'Nav-Item'),
+  ('site_logo_url', 'https://img.icons8.com/lollipop/100/navigation.png'),
+  ('background_url', 'https://link.tyrlink.dpdns.org/nav.webp'),
+  ('umami_base_url', 'https://u.mtcacg.top'),
+  ('umami_website_id', 'c16beeaa-1801-4337-9d35-3aa2ea8b300a'),
+  ('umami_share_url', 'https://u.mtcacg.top/share/9WknxPqM6gjT0j4w');
