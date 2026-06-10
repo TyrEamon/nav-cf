@@ -1,6 +1,19 @@
 import axios from 'axios';
 const BASE = '/api';
 
+// 登录态失效（401）时：清除 token 并通知界面回到登录页。
+// 只在本地确有 token 时触发，避免把“登录时密码错误”的 401 也当成会话过期。
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && localStorage.getItem('token')) {
+      localStorage.removeItem('token');
+      window.dispatchEvent(new Event('auth-expired'));
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const login = (username, password) => axios.post(`${BASE}/login`, { username, password });
 
 function authHeaders() {

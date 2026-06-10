@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { login } from '../api';
 import MenuManage from './admin/MenuManage.vue';
 import CardManage from './admin/CardManage.vue';
@@ -125,13 +125,44 @@ const pageTitle = computed(() => {
   }
 });
 
+// 校验 token 是否仍在有效期内（解析 JWT 的 exp 字段）
+function isTokenValid(token) {
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(
+      atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+    );
+    return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+// 会话过期：退回登录页并提示重新登录
+function handleAuthExpired() {
+  localStorage.removeItem('token');
+  isLoggedIn.value = false;
+  page.value = 'welcome';
+  loginError.value = '登录已过期，请重新登录';
+}
+
 onMounted(() => {
   const token = localStorage.getItem('token');
-  isLoggedIn.value = !!token;
+  if (token && !isTokenValid(token)) {
+    // token 已过期，清掉并停留在登录页
+    localStorage.removeItem('token');
+    loginError.value = '登录已过期，请重新登录';
+  }
+  isLoggedIn.value = isTokenValid(token);
   if (isLoggedIn.value) {
     // 拉取用户信息
     fetchLastLoginInfo();
   }
+  window.addEventListener('auth-expired', handleAuthExpired);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('auth-expired', handleAuthExpired);
 });
 async function fetchLastLoginInfo() {
   try {
