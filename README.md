@@ -79,9 +79,9 @@ npx wrangler pages dev dist
 
 ```toml
 [[d1_databases]]
-binding = "DB"
-database_name = "nav-item"
-database_id = "a43c2924-e816-4043-9c8e-b69c574ab4d3"
+binding = "DB"   #写死
+database_name = "nav-item"   #随意，懒就默认
+database_id = "你D1的id"   
 ```
 
 部署到 Pages：
