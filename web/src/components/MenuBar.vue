@@ -1,41 +1,62 @@
 <template>
   <nav class="menu-bar">
-    <div 
-      v-for="menu in menus" 
-      :key="menu.id" 
-      class="menu-item"
-      @mouseenter="showSubMenu(menu.id)"
-      @mouseleave="hideSubMenu(menu.id)"
-    >
-      <button 
-        @click="$emit('select', menu)" 
-        :class="{active: menu.id === activeId}"
+    <div class="menu-items">
+      <div
+        v-for="menu in menus"
+        :key="menu.id"
+        class="menu-item"
+        @mouseenter="showSubMenu(menu.id)"
+        @mouseleave="hideSubMenu(menu.id)"
       >
-        {{ menu.name }}
-      </button>
-      
-      <!-- 二级菜单 -->
-      <div 
-        v-if="menu.subMenus && menu.subMenus.length > 0" 
-        class="sub-menu"
-        :class="{ 'show': hoveredMenuId === menu.id }"
-      >
-        <button 
-          v-for="subMenu in menu.subMenus" 
-          :key="subMenu.id"
-          @click="$emit('select', subMenu, menu)"
-          :class="{active: subMenu.id === activeSubMenuId}"
-          class="sub-menu-item"
+        <button
+          @click="$emit('select', menu)"
+          :class="{active: menu.id === activeId}"
+          :aria-current="menu.id === activeId ? 'page' : undefined"
+          :aria-label="menu.name"
         >
-          {{ subMenu.name }}
+          <span class="menu-label" aria-hidden="true">
+            <span
+              v-for="(char, index) in getGraphemes(menu.name)"
+              :key="`${menu.id}-${index}`"
+              class="menu-char"
+              :style="{ '--char-delay': `${index * 25}ms` }"
+            >{{ char === ' ' ? '\u00a0' : char }}</span>
+          </span>
         </button>
+
+        <div
+          v-if="menu.subMenus && menu.subMenus.length > 0"
+          class="sub-menu"
+          :class="{ show: hoveredMenuId === menu.id }"
+        >
+          <button
+            v-for="subMenu in menu.subMenus"
+            :key="subMenu.id"
+            @click="$emit('select', subMenu, menu)"
+            :class="{active: subMenu.id === activeSubMenuId}"
+            class="sub-menu-item"
+          >
+            {{ subMenu.name }}
+          </button>
+        </div>
       </div>
+    </div>
+    <div v-if="selectedMenu?.subMenus?.length" class="mobile-sub-menu" :aria-label="`${selectedMenu.name} 子分类`">
+      <button
+        v-for="subMenu in selectedMenu.subMenus"
+        :key="subMenu.id"
+        class="mobile-sub-menu-item"
+        :class="{active: subMenu.id === activeSubMenuId}"
+        @click="$emit('select', subMenu, selectedMenu)"
+      >
+        {{ subMenu.name }}
+      </button>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({ 
   menus: Array, 
@@ -44,6 +65,20 @@ const props = defineProps({
 });
 
 const hoveredMenuId = ref(null);
+const selectedMenu = computed(() => props.menus?.find((menu) => menu.id === props.activeId));
+const graphemeCache = new Map();
+const segmenter = typeof Intl !== 'undefined' && Intl.Segmenter
+  ? new Intl.Segmenter('zh', { granularity: 'grapheme' })
+  : null;
+
+function getGraphemes(text) {
+  if (!graphemeCache.has(text)) {
+    graphemeCache.set(text, segmenter
+      ? Array.from(segmenter.segment(text), ({ segment }) => segment)
+      : Array.from(text));
+  }
+  return graphemeCache.get(text);
+}
 
 function showSubMenu(menuId) {
   hoveredMenuId.value = menuId;
@@ -68,6 +103,13 @@ function hideSubMenu(menuId) {
   position: relative;
 }
 
+.menu-items {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
 .menu-item {
   position: relative;
 }
@@ -86,6 +128,29 @@ function hideSubMenu(menuId) {
   border-radius: 8px;
   position: relative;
   overflow: hidden;
+}
+
+.menu-label {
+  display: inline-flex;
+  position: relative;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.menu-char {
+  display: inline-block;
+  position: relative;
+  will-change: transform;
+  text-shadow: 0 1em currentColor;
+  transition: transform 250ms ease-in-out;
+  transition-delay: var(--char-delay);
+}
+
+.menu-bar button:hover .menu-char,
+.menu-bar button:focus-visible .menu-char {
+  transform: translateY(-1em);
 }
 
 .menu-bar button::before {
@@ -171,23 +236,58 @@ function hideSubMenu(menuId) {
   display: none;
 }
 
+.mobile-sub-menu {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .menu-bar {
-    gap: 0.2rem;
+    display: block;
+    padding: 0 10px;
   }
-  
+
+  .menu-items,
+  .mobile-sub-menu {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .menu-items::-webkit-scrollbar,
+  .mobile-sub-menu::-webkit-scrollbar {
+    display: none;
+  }
+
+  .menu-item {
+    flex: none;
+  }
+
   .menu-bar button {
     font-size: 14px;
-    padding: .4rem .8rem;
+    min-height: 44px;
+    padding: 0 12px;
+    white-space: nowrap;
   }
-  
+
+  .mobile-sub-menu {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .mobile-sub-menu-item {
+    flex: none;
+    min-height: 40px !important;
+    font-size: 13px !important;
+    padding: 0 12px !important;
+  }
+
+  .mobile-sub-menu-item.active {
+    color: #399dff;
+  }
+
   .sub-menu {
-    min-width: 100px;
-  }
-  
-  .sub-menu-item {
-    font-size: 8px !important;
-    padding: 0.2rem 0.8rem !important;
+    display: none;
   }
 }
 </style> 
